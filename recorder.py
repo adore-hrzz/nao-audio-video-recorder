@@ -11,7 +11,7 @@ class MainWindow(tk.Frame):
         self.master = master
 
         # initialize tk frame
-        tk.Frame.__init__(self, master, width=380, height=100)
+        tk.Frame.__init__(self, master)
         
         # initialize variables
         self.isRecordingVideo = False
@@ -19,6 +19,9 @@ class MainWindow(tk.Frame):
         self.isConnected = False
         self.ip = tk.StringVar()
         self.port = tk.IntVar()
+        self.camera_dict = {0: 'Top camera', 1: 'Bottom camera'}
+        self.audio_dict = {0: '.wav', 1:'.ogg'}
+        self.audio_id = 0
 
         # create GUI
         self.initializeGUI()
@@ -45,22 +48,34 @@ class MainWindow(tk.Frame):
         ip = tk.Entry(frame_robot_config, width=16, font=input_font, textvariable=self.ip)
         ip.pack(side=tk.RIGHT, padx=5, pady=5)
         tk.Label(frame_robot_config, text="IP").pack(side=tk.RIGHT, padx=5, pady=5)
+
+        # frame for camera and audio format selection
+        frame_camera_config = tk.Frame(self)
+        frame_camera_config.pack(fill=tk.X)
+        self.camera_label = tk.Label(frame_camera_config, text="Top camera")
+        self.camera_label.pack(side=tk.RIGHT, padx=5, pady=5)
+        tk.Button(frame_camera_config, text="Switch camera", command=self.switchCamera).pack(side=tk.RIGHT, padx=5, pady=5)
+        self.audio_label = tk.Label(frame_camera_config, text = ".wav")
+        self.audio_label.pack(side=tk.RIGHT, padx=5, pady=5)
+        tk.Button(frame_camera_config, text="Switch audio", command=self.switchAudio).pack(side=tk.RIGHT, padx=5, pady=5)        
         
-        # frame for record, stop and close buttons
+        
+        # frame for record and stop buttons
         frame_buttons = tk.Frame(self)
         frame_buttons.pack(fill=tk.X)
         start_button = tk.Button(frame_buttons, text='Start recording', command=self.start, width = 12)
         stop_button = tk.Button(frame_buttons, text='Stop recording', command=self.stop, width = 12)
         close_button = tk.Button(frame_buttons, text='Close', command=self.close, width = 12)
-        close_button.pack(side=tk.RIGHT, padx=5, pady=5)
-        stop_button.pack(side=tk.RIGHT, padx=5, pady=5)
-        start_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        close_button.grid(row=0, column=2, padx=5, pady=5)
+        stop_button.grid(row=0, column=1, padx=5, pady=5)
+        start_button.grid(row=0, column=0, padx=5, pady=5)
 
         # frame for status display
         frame_label = tk.Frame(self)
         frame_label.pack(fill=tk.X)
         self.label = tk.Label(frame_label, text="Not connected")
         self.label.pack(fill=tk.X)
+        
 
     def connect(self):
         ''' Connect with the robot '''
@@ -77,7 +92,24 @@ class MainWindow(tk.Frame):
         # connecting with robot failed
         except:
             self.isConnected = False
-            self.label.config(text='Not connected')           
+            self.label.config(text='Not connected')
+
+    def switchCamera(self):
+        ''' Change the recording device on the robot '''
+        
+        # switch camera if connected
+        if self.isConnected and not self.isVideoRecording:
+            self.videoRecorderProxy.setCameraID(1 - self.videoRecorderProxy.getCameraID())
+            self.camera_label.config(text=self.camera_dict[self.videoRecorderProxy.getCameraID()])
+
+    def switchAudio(self):
+        ''' Change the format of audio recording
+            .ogg is a single channel recording from the front microphone
+            .wav is a 4-channel recording from all microphones
+        '''
+        if not self.isRecordingAudio:
+            self.audio_id = 1 - self.audio_id
+            self.audio_label.config(text=self.audio_dict[self.audio_id])
 
 
     def start(self):
@@ -88,7 +120,7 @@ class MainWindow(tk.Frame):
         
         # use timestamped filenames
         filename = time.strftime("%Y%m%d_%H%M%S")
-        filename_audio = filename+".wav"
+        filename_audio = filename+self.audio_dict[self.audio_id]
 
         # start recording
         self.videoRecorderProxy.startRecording("/home/nao/recordings/cameras", filename)
@@ -127,7 +159,6 @@ def main():
     
     # create tkinter window
     root = tk.Tk()
-    root.geometry("380x100+380+100")
     mainWindow = MainWindow(root)
 
     # enter tk loop
