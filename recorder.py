@@ -1,8 +1,6 @@
 from naoqi import ALProxy
 import time
 import Tkinter as tk
-import tkFileDialog
-import tkSimpleDialog
 import tkFont
 
 
