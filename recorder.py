@@ -105,7 +105,7 @@ class MainWindow(tk.Frame):
     def switchAudio(self):
         ''' Change the format of audio recording
             .ogg is a single channel recording from the front microphone
-            .wav is a 4-channel recording from all microphones
+            .wav (default) is a 4-channel recording from all microphones
         '''
         if not self.isRecordingAudio:
             self.audio_id = 1 - self.audio_id
