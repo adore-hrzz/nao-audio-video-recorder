@@ -19,7 +19,9 @@ class MainWindow(tk.Frame):
         self.isConnected = False
         self.ip = tk.StringVar(value='leclerc.local')
         self.port = tk.IntVar(value=9559)
-        self.camera_dict = {0: 'Top camera', 1: 'Bottom camera'}
+        self.video_label = tk.StringVar()
+        self.additional_label = ""
+        self.camera_dict = {0: 'Top', 1: 'Bottom'}
         self.audio_dict = {0: '.wav', 1:'.ogg'}
         self.audio_id = 0
 
@@ -52,20 +54,27 @@ class MainWindow(tk.Frame):
         # frame for camera and audio format selection
         frame_camera_config = tk.Frame(self)
         frame_camera_config.pack(fill=tk.X)
-        self.camera_label = tk.Label(frame_camera_config, text="Top camera")
+        self.camera_label = tk.Label(frame_camera_config, text="Top", width = 8)
         self.camera_label.pack(side=tk.RIGHT, padx=5, pady=5)
         tk.Button(frame_camera_config, text="Switch camera", command=self.switchCamera).pack(side=tk.RIGHT, padx=5, pady=5)
         self.audio_label = tk.Label(frame_camera_config, text = ".wav")
         self.audio_label.pack(side=tk.RIGHT, padx=5, pady=5)
         tk.Button(frame_camera_config, text="Switch audio", command=self.switchAudio).pack(side=tk.RIGHT, padx=5, pady=5)       
         
+        # additional video label selection
+        frame_video_label = tk.Frame(self)
+        frame_video_label.pack(fill=tk.X)
+        tk.Button(frame_video_label, text='Clear', command=self.clear_label, width = 10).pack(side=tk.RIGHT, padx=5, pady=5)
+        tk.Entry(frame_video_label, width=20, font=input_font, textvariable=self.video_label).pack(side=tk.RIGHT, padx=5, pady=5)
+        tk.Label(frame_video_label, text="Video label").pack(side=tk.RIGHT, padx=5, pady=5)
+        
         
         # frame for record and stop buttons
         frame_buttons = tk.Frame(self)
         frame_buttons.pack(fill=tk.X)
-        start_button = tk.Button(frame_buttons, text='Start recording', command=self.start, width = 12)
-        stop_button = tk.Button(frame_buttons, text='Stop recording', command=self.stop, width = 12)
-        close_button = tk.Button(frame_buttons, text='Close', command=self.close, width = 12)
+        start_button = tk.Button(frame_buttons, text='Start recording', command=self.start)
+        stop_button = tk.Button(frame_buttons, text='Stop recording', command=self.stop)
+        close_button = tk.Button(frame_buttons, text='Close', command=self.close, width = 10)
         close_button.grid(row=0, column=2, padx=5, pady=5)
         stop_button.grid(row=0, column=1, padx=5, pady=5)
         start_button.grid(row=0, column=0, padx=5, pady=5)
@@ -75,6 +84,10 @@ class MainWindow(tk.Frame):
         frame_label.pack(fill=tk.X)
         self.label = tk.Label(frame_label, text="Not connected")
         self.label.pack(fill=tk.X)
+
+
+    def clear_label(self):
+        self.video_label.set("")
         
 
     def connect(self):
@@ -120,7 +133,7 @@ class MainWindow(tk.Frame):
             return
         
         # use timestamped filenames
-        filename = time.strftime("%Y%m%d_%H%M%S")
+        filename = time.strftime("%Y%m%d_%H%M%S")+"_"+self.video_label.get()
         filename_audio = filename+self.audio_dict[self.audio_id]
 
         # start recording
