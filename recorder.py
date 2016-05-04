@@ -17,8 +17,8 @@ class MainWindow(tk.Frame):
         self.isRecordingVideo = False
         self.isRecordingAudio = False
         self.isConnected = False
-        self.ip = tk.StringVar()
-        self.port = tk.IntVar()
+        self.ip = tk.StringVar(value='nao.local')
+        self.port = tk.IntVar(value=9559)
         self.camera_dict = {0: 'Top camera', 1: 'Bottom camera'}
         self.audio_dict = {0: '.wav', 1:'.ogg'}
         self.audio_id = 0
@@ -98,7 +98,7 @@ class MainWindow(tk.Frame):
         ''' Change the recording device on the robot '''
         
         # switch camera if connected
-        if self.isConnected and not self.isVideoRecording:
+        if self.isConnected and not self.isRecordingVideo:
             self.videoRecorderProxy.setCameraID(1 - self.videoRecorderProxy.getCameraID())
             self.camera_label.config(text=self.camera_dict[self.videoRecorderProxy.getCameraID()])
 
@@ -123,9 +123,9 @@ class MainWindow(tk.Frame):
         filename_audio = filename+self.audio_dict[self.audio_id]
 
         # start recording
-        self.videoRecorderProxy.startRecording("/home/nao/recordings/cameras", filename)
+        self.videoRecorderProxy.startRecording("/home/nao/recordings/", filename)
         self.isRecordingVideo = True
-        self.audioRecorderProxy.startMicrophonesRecording("/home/nao/recordings/microphones/"+filename_audio)
+        self.audioRecorderProxy.startMicrophonesRecording("/home/nao/recordings/"+filename_audio)
         self.isRecordingAudio = True
         self.label.config(text='Recording')
 
