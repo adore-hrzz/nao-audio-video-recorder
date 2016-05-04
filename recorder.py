@@ -17,7 +17,7 @@ class MainWindow(tk.Frame):
         self.isRecordingVideo = False
         self.isRecordingAudio = False
         self.isConnected = False
-        self.ip = tk.StringVar(value='nao.local')
+        self.ip = tk.StringVar(value='leclerc.local')
         self.port = tk.IntVar(value=9559)
         self.camera_dict = {0: 'Top camera', 1: 'Bottom camera'}
         self.audio_dict = {0: '.wav', 1:'.ogg'}
@@ -57,7 +57,7 @@ class MainWindow(tk.Frame):
         tk.Button(frame_camera_config, text="Switch camera", command=self.switchCamera).pack(side=tk.RIGHT, padx=5, pady=5)
         self.audio_label = tk.Label(frame_camera_config, text = ".wav")
         self.audio_label.pack(side=tk.RIGHT, padx=5, pady=5)
-        tk.Button(frame_camera_config, text="Switch audio", command=self.switchAudio).pack(side=tk.RIGHT, padx=5, pady=5)        
+        tk.Button(frame_camera_config, text="Switch audio", command=self.switchAudio).pack(side=tk.RIGHT, padx=5, pady=5)       
         
         
         # frame for record and stop buttons
@@ -86,6 +86,7 @@ class MainWindow(tk.Frame):
             self.videoRecorderProxy.setResolution(2)
             self.videoRecorderProxy.setFrameRate(30)
             self.videoRecorderProxy.setVideoFormat("MJPG")
+            self.videoRecorderProxy.setCameraID(0)
             self.audioRecorderProxy = ALProxy("ALAudioDevice", self.ip.get(), self.port.get())
             self.isConnected = True
             self.label.config(text='Ready')
