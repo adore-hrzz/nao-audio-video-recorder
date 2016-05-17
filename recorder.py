@@ -16,6 +16,10 @@ class MainWindow(tk.Frame):
         # initialize variables
         self.isRecordingVideo = False
         self.isRecordingAudio = False
+        self.isRecordingSonar = False
+        self.isRecordingTactile = False
+        self.recordTactile = tk.IntVar()
+        self.recordSonar = tk.IntVar()
         self.isConnected = False
         self.ip = tk.StringVar(value='leclerc.local')
         self.port = tk.IntVar(value=9559)
@@ -31,6 +35,8 @@ class MainWindow(tk.Frame):
         # create naoqi proxies
         self.videoRecorderProxy = []
         self.audioRecorderProxy = []
+        self.sonarProxy = []
+        self.memoryProxy = []
 
 
     def initializeGUI(self):
@@ -67,8 +73,13 @@ class MainWindow(tk.Frame):
         tk.Button(frame_video_label, text='Clear', command=self.clear_label, width = 10).pack(side=tk.RIGHT, padx=5, pady=5)
         tk.Entry(frame_video_label, width=20, font=input_font, textvariable=self.video_label).pack(side=tk.RIGHT, padx=5, pady=5)
         tk.Label(frame_video_label, text="Video label").pack(side=tk.RIGHT, padx=5, pady=5)
-        
-        
+
+        # checkboxes for sonar and tactile sensors readings
+        frame_checkboxes = tk.Frame(self)
+        frame_checkboxes.pack(fill=tk.X)
+        tactile = tk.Checkbutton(frame_checkboxes, text="Record tactile sensors", variable=self.recordTactile).pack(side=tk.RIGHT, padx=5, pady=5)
+        sonar = tk.Checkbutton(frame_checkboxes, text="Record sonar readings", variable=self.recordSonar).pack(side=tk.RIGHT, padx=5, pady=5)
+
         # frame for record and stop buttons
         frame_buttons = tk.Frame(self)
         frame_buttons.pack(fill=tk.X)
@@ -85,11 +96,9 @@ class MainWindow(tk.Frame):
         self.label = tk.Label(frame_label, text="Not connected")
         self.label.pack(fill=tk.X)
 
-
     def clear_label(self):
         self.video_label.set("")
         
-
     def connect(self):
         ''' Connect with the robot '''
         
@@ -101,6 +110,8 @@ class MainWindow(tk.Frame):
             self.videoRecorderProxy.setVideoFormat("MJPG")
             self.videoRecorderProxy.setCameraID(0)
             self.audioRecorderProxy = ALProxy("ALAudioDevice", self.ip.get(), self.port.get())
+            self.memoryProxy = ALProxy("ALMemory", self.ip.get(), self.port.get())
+            self.sonarProxy = ALProxy("ALSonar", self.ip.get(), self.port.get())
             self.isConnected = True
             self.label.config(text='Ready')
         # connecting with robot failed
@@ -125,7 +136,6 @@ class MainWindow(tk.Frame):
             self.audio_id = 1 - self.audio_id
             self.audio_label.config(text=self.audio_dict[self.audio_id])
 
-
     def start(self):
         ''' Start recording if connected'''
         if not self.isConnected:
@@ -142,6 +152,13 @@ class MainWindow(tk.Frame):
         self.audioRecorderProxy.startMicrophonesRecording("/home/nao/recordings/"+filename_audio)
         self.isRecordingAudio = True
         self.label.config(text='Recording')
+        if self.recordSonar.get():
+            self.log_sonar = open(filename+'_sonar.txt', 'w')
+            self.isRecordingSonar = True
+            self.sonarProxy.subscribe("myApp")
+        if self.recordTactile.get():
+            self.isRecordingTactile = True
+            self.log_tactile = open(filename+'_tactile.txt', 'w')
 
 
     def stop(self):
@@ -158,6 +175,13 @@ class MainWindow(tk.Frame):
             self.isRecordingAudio = False
         if not self.isRecordingAudio and not self.isRecordingVideo:
             self.label.config(text='Recording stopped')
+        if self.isRecordingSonar:
+            self.isRecordingSonar = False
+            self.log_sonar.close()
+            self.sonarProxy.unsubscribe("myApp")
+        if self.isRecordingTactile:
+            self.isRecordingTactile = False
+            self.log_tactile.close()
 
     def close(self):
         ''' Stop recording and close the program '''
@@ -168,15 +192,31 @@ class MainWindow(tk.Frame):
             self.audioRecorderProxy.stopMicrophonesRecording()
         self.master.destroy()
 
+    def to_do(self):
+        if self.isRecordingSonar:
+            val_left = self.memoryProxy.getData("Device/SubDeviceList/US/Left/Sensor/Value")
+            val_right = self.memoryProxy.getData("Device/SubDeviceList/US/Right/Sensor/Value")
+            self.log_sonar.write(str(val_right)+','+str(val_left)+'\n')
+        if self.isRecordingTactile:
+            val_left1 = str(self.memoryProxy.getData("HandRightLeftTouched"))
+            val_left2 = str(self.memoryProxy.getData("HandRightBackTouched"))
+            val_left3 = str(self.memoryProxy.getData("HandRightRightTouched"))
+            val_right1 = str(self.memoryProxy.getData("HandLeftLeftTouched"))
+            val_right2 = str(self.memoryProxy.getData("HandLeftBackTouched"))
+            val_right3 = str(self.memoryProxy.getData("HandLeftRightTouched"))
+            self.log_tactile.write(val_left1+','+val_left2+','+val_left3+','+val_right1+','+val_right2+','+val_right3+'\n')
+        self.master.after(10, self.to_do)
+
 def main():
     ''' Main function '''
     
     # create tkinter window
     root = tk.Tk()
-    mainWindow = MainWindow(root)
-
+    main_window = MainWindow(root)
+    main_window.to_do()
     # enter tk loop
     root.mainloop()
 
 if __name__ == "__main__":
     main()
+
