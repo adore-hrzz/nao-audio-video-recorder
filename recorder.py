@@ -28,6 +28,7 @@ class MainWindow(tk.Frame):
         self.camera_dict = {0: 'Top', 1: 'Bottom'}
         self.audio_dict = {0: '.wav', 1:'.ogg'}
         self.audio_id = 0
+        self.time_start = 0
 
         # create GUI
         self.initializeGUI()
@@ -153,12 +154,13 @@ class MainWindow(tk.Frame):
         self.isRecordingAudio = True
         self.label.config(text='Recording')
         if self.recordSonar.get():
-            self.log_sonar = open(filename+'_sonar.txt', 'w')
+            self.log_sonar = open('./sensor_readings/'+filename+'_sonar.txt', 'w')
             self.isRecordingSonar = True
             self.sonarProxy.subscribe("myApp")
         if self.recordTactile.get():
             self.isRecordingTactile = True
-            self.log_tactile = open(filename+'_tactile.txt', 'w')
+            self.log_tactile = open('./sensor_readings/'+filename+'_tactile.txt', 'w')
+        self.time_start = time.time()
 
 
     def stop(self):
@@ -193,10 +195,11 @@ class MainWindow(tk.Frame):
         self.master.destroy()
 
     def to_do(self):
+        time_stamp = time.time()-self.time_start
         if self.isRecordingSonar:
             val_left = self.memoryProxy.getData("Device/SubDeviceList/US/Left/Sensor/Value")
             val_right = self.memoryProxy.getData("Device/SubDeviceList/US/Right/Sensor/Value")
-            self.log_sonar.write(str(val_right)+','+str(val_left)+'\n')
+            self.log_sonar.write(str(time_stamp)+','+str(val_right)+','+str(val_left)+'\n')
         if self.isRecordingTactile:
             val_left1 = str(self.memoryProxy.getData("HandRightLeftTouched"))
             val_left2 = str(self.memoryProxy.getData("HandRightBackTouched"))
@@ -204,7 +207,7 @@ class MainWindow(tk.Frame):
             val_right1 = str(self.memoryProxy.getData("HandLeftLeftTouched"))
             val_right2 = str(self.memoryProxy.getData("HandLeftBackTouched"))
             val_right3 = str(self.memoryProxy.getData("HandLeftRightTouched"))
-            self.log_tactile.write(val_left1+','+val_left2+','+val_left3+','+val_right1+','+val_right2+','+val_right3+'\n')
+            self.log_tactile.write(str(time_stamp)+','+val_left1+','+val_left2+','+val_left3+','+val_right1+','+val_right2+','+val_right3+'\n')
         self.master.after(10, self.to_do)
 
 def main():
