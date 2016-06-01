@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from naoqi import ALProxy
 import time
 import Tkinter as tk
