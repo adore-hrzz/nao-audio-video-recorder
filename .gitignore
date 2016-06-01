@@ -60,3 +60,11 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+# Sensor logs
+sensor_readings/*.txt
+
+# Emacs droppings
+\#*\#
+.\#
+

@@ -1,0 +1,1 @@
+Readings from Nao's sensors are recorded to this folder.
