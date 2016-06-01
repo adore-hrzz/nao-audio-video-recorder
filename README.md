@@ -1,7 +1,9 @@
 # nao-audio-video-recorder
 Simple GUI for recording audio and video using Nao's cameras, microphones and sensors.
 
-Sensor data is recorded on the local computer, to sensor_readings/...
+Sensor data is recorded on the local computer, to 
+
+./sensor_readings/YYYYMMDD_hhmmss_<label>_<sensor type>.txt
 
 Audio and video is recorded on the robot, into /home/nao/recordings
 
